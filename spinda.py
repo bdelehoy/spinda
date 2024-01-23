@@ -3,12 +3,13 @@ from flask import Flask, Response, abort, redirect, url_for
 app = Flask(__name__)
 
 from PIL import Image
-from cStringIO import StringIO
+from io import BytesIO
 import random
 
 # http://www.freewebs.com/gatorshark/SpindaDocumentation.htm
 
 # information pertaining to Black/White provided by codemonkey85
+# original Python 2 script by magical: https://github.com/magical/spinda
 
 spinda_conf = {
     'ruby': {
@@ -177,9 +178,9 @@ def make_spinda(conf, pid, color='normal'):
     alpha.putdata([int(x != 0) for x in pixels])
     img.putalpha(alpha)
 
-    buf = StringIO()
-    img.save(buf, 'PNG')
-    return buf.getvalue()
+    with BytesIO() as buf:
+        img.convert('RGBA').save(buf, format='PNG')
+        return buf.getvalue()
 
 @app.route("/<game>/327-<int:pid>.png", defaults={'shiny': False})
 @app.route("/<game>/shiny/327-<int:pid>.png", defaults={'shiny': True})
